@@ -21,6 +21,7 @@ async function run() {
         const database = client.db('topDestination');
         const destinationCollection = database.collection('destinations');
         const attractivePlaceCollection = database.collection('attractivePlaces');
+        const orderCollection = database.collection('orders');
 
         //GET Top Destinations API
         app.get('/destinations', async (req, res) => {
@@ -46,20 +47,42 @@ async function run() {
             res.send(attractivePlaces);
         });
 
+        //GET Booking API
+        app.get('/booking', async (req, res) => {
+            const cursor = orderCollection.find({});
+            const booking = await cursor.toArray();
+
+            res.send(booking);
+        })
+
         //POST API to MONGO-DB server
         app.post('/destinations', async (req, res) => {
             const addPlace = req.body;
-            console.log('hit the post', addPlace);
             const result = await destinationCollection.insertOne(addPlace);
             console.log(result);
             res.json(result);
         });
 
-        //DELeTE API
+        //POST API to Orders
+        app.post('/my-orders', async (req, res) => {
+            const newOrder = req.body;
+            const result = await orderCollection.insertOne(newOrder);
+            res.json(result);
+        });
+
+        //DELETE API
         app.delete("/destinations/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await destinationCollection.deleteOne(query);
+            res.json(result);
+        });
+
+        //DELETE Order API
+        app.delete("/booking/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
             res.json(result);
         });
     }
