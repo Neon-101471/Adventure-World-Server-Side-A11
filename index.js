@@ -3,6 +3,8 @@ const { MongoClient } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
 
+const ObjectId = require('mongodb').ObjectId;
+
 const app = express();
 const port = process.env.PORT || 7000;
 
@@ -26,7 +28,15 @@ async function run() {
             const destinations = await cursor.toArray();
 
             res.send(destinations);
-        })
+        });
+
+        //GET Single API
+        app.get("/destinations/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const singleDestination = await destinationCollection.findOne(query);
+            res.json(singleDestination);
+        });
 
         //GET Top Attractions API
         app.get('/attractive-place', async (req, res) => {
@@ -34,9 +44,26 @@ async function run() {
             const attractivePlaces = await cursor.toArray();
 
             res.send(attractivePlaces);
-        })
+        });
 
+        //POST API to MONGO-DB server
+        app.post('/destinations', async (req, res) => {
+            const addPlace = req.body;
+            console.log('hit the post', addPlace);
+            const result = await destinationCollection.insertOne(addPlace);
+            console.log(result);
+            res.json(result);
+        });
+
+        //DELeTE API
+        app.delete("/destinations/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await destinationCollection.deleteOne(query);
+            res.json(result);
+        });
     }
+
     finally {
         // await client.close();
     }
@@ -45,14 +72,6 @@ run().catch(console.dir);
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
-})
-
-app.get('/services', (req, res) => {
-    res.send()
-})
-
-app.get('/check', (req, res) => {
-    res.send('Check the server');
 })
 
 app.listen(port, () => {
